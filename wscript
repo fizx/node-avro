@@ -21,21 +21,20 @@ def configure(conf):
   conf.env.append_value("LIBPATH_JANSSON", abspath("./deps/avro/jansson/"))
   conf.env.append_value("CPPPATH_JANSSON", abspath("./deps/avro/jansson/src/"))
 
-  conf.env.append_value("LIBPATH_AVRO", abspath("./deps/avro/src/"))
+  conf.env.append_value("LIBPATH_AVRO", abspath("./deps/build/lib/"))
   conf.env.append_value("LIB_AVRO",     "avro")
-  conf.env.append_value("CPPPATH_AVRO", abspath("./deps/avro/src/"))
+  conf.env.append_value("CPPPATH_AVRO", abspath("./deps/build/include/"))
 
-  if os.system("cd \"deps/avro\" && ./configure --prefix=" + abspath("../build/default/") + " && cd ..") != 0:
+  if os.system("cd \"deps/avro\" && ./configure --prefix=" + abspath("deps/build") + " && cd ..") != 0:
       conf.fatal("Configuring %s failed." % (subdir))  
 
 def build(bld):
 
   # build avro
-  if os.system("cd \"deps/avro\" && make clean install ") != 0:
-      conf.fatal("Make avro %s failed." % (subdir))  
+  os.system("cd \"deps/avro\" && make clean install")
   
   # build node-avro
-  node_avro = bld.new_task_gen("cxx", "cstaticlib", "node_addon")
+  node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
   node_avro.source = bld.glob("binding.cc")
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
@@ -48,6 +47,7 @@ def shutdown():
   if Options.commands['clean']:
     if exists('lib/node-avro.node'): unlink('lib/node-avro.node')  
     rmtree('build')
+    rmtree('deps/build')
     os.system("cd \"deps/avro\" && make distclean")
   else:
     if exists('build/default/node-avro.node') and not exists('node-avro.node'):

@@ -1,7 +1,4 @@
-#include <node.h>
-#include <node_events.h>
-#include <assert.h>
-
+#include <binding.h>
 
 using namespace v8;
 using namespace node;
