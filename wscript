@@ -34,7 +34,7 @@ def configure(conf):
 def build(bld):
 
   # build avro
-  os.system("cd \"deps/avro\" && make clean install")
+  os.system("cd \"deps/avro\" && make clean && make")
 
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
