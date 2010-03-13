@@ -1,4 +1,4 @@
-import Options
+import Options, glob
 from os.path import join, dirname, abspath, exists
 from shutil import copy, rmtree
 from os import unlink
@@ -40,17 +40,27 @@ def build(bld):
   node_avro.target = "node-avro"
   node_avro.includes = "."
   node_avro.uselib = "AVRO"
-  
+
 def shutdown():
-  # HACK to get binding.node out of build directory.
-  # better way to do this?
-  if Options.commands['clean']:
-    if exists('lib/node-avro.node'): unlink('lib/node-avro.node')  
-    rmtree('build')
-    rmtree('deps/build')
-    os.system("cd \"deps/avro\" && make distclean")
-  else:
-    if exists('build/default/node-avro.node') and not exists('node-avro.node'):
-      copy('build/default/node-avro.node', 'lib/node-avro.node')
+  if exists('build/default/node-avro.node') and not exists('lib/node-avro.node'):
+    copy('build/default/node-avro.node', 'lib/node-avro.node')
   
+  if (exists('deps/build/lib/')):
+    for FILE in glob.glob("deps/build/lib/*"):
+      copy(FILE, "lib")
+      
+
+def clean(cln):
+  if exists('build'): rmtree('build')
+  if exists('deps/build'): rmtree('deps/build')
+  if exists('deps/avro/Makefile'):
+    os.system("cd \"deps/avro\" && make distclean")
+  if exists('lib/node-avro.node'):
+    for FILE in glob.glob("lib/*"):
+      unlink(FILE)
+    
+  
+def test(tst):
+  print os.system("node test/sanity.js")
+ 
 
