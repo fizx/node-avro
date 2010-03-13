@@ -22,23 +22,27 @@ def configure(conf):
   conf.env.append_value("CPPPATH_JANSSON", abspath("./deps/avro/jansson/src/"))
 
   conf.env.append_value("LIBPATH_AVRO", abspath("./deps/build/lib/"))
-  conf.env.append_value("LIB_AVRO",     "avro")
+  conf.env.append_value("STATICLIB_AVRO",["avro"])
   conf.env.append_value("CPPPATH_AVRO", abspath("./deps/build/include/"))
 
   if os.system("cd \"deps/avro\" && ./configure --prefix=" + abspath("deps/build") + " && cd ..") != 0:
+      conf.fatal("Configuring %s failed." % (subdir))  
+
+  if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + abspath("deps/build") + " && cd ..") != 0:
       conf.fatal("Configuring %s failed." % (subdir))  
 
 def build(bld):
 
   # build avro
   os.system("cd \"deps/avro\" && make clean install")
-  
+
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
   node_avro.source = bld.glob("binding.cc")
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
   node_avro.includes = "."
+  node_avro.libpath = "lib"
   node_avro.uselib = "AVRO"
 
 def shutdown():
