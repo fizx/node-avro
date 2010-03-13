@@ -25,16 +25,17 @@ def configure(conf):
   conf.env.append_value("STATICLIB_AVRO",["avro"])
   conf.env.append_value("CPPPATH_AVRO", abspath("./deps/build/include/"))
 
-  if os.system("cd \"deps/avro\" && ./configure --prefix=" + abspath("deps/build") + " && cd ..") != 0:
+  buildpath = abspath("deps/build")
+  if os.system("cd \"deps/avro\" && ./configure --prefix=" + buildpath + " && cd ..") != 0:
       conf.fatal("Configuring %s failed." % (subdir))  
 
-  if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + abspath("deps/build") + " && cd ..") != 0:
+  if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + buildpath + " && cd ..") != 0:
       conf.fatal("Configuring %s failed." % (subdir))  
 
 def build(bld):
 
   # build avro
-  os.system("cd \"deps/avro\" && make clean && make")
+  os.system("cd \"deps/avro\" && make clean install")
 
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
@@ -42,17 +43,16 @@ def build(bld):
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
   node_avro.includes = "."
-  node_avro.libpath = "lib"
   node_avro.uselib = "AVRO"
+  bld.add_group()
 
-def shutdown():
+def copynode(ctx):
   if exists('build/default/node-avro.node') and not exists('lib/node-avro.node'):
     copy('build/default/node-avro.node', 'lib/node-avro.node')
-  
-  if (exists('deps/build/lib/')):
-    for FILE in glob.glob("deps/build/lib/*"):
-      copy(FILE, "lib")
-      
+
+
+def shutdown():
+  copynode(None)
 
 def clean(cln):
   if exists('build'): rmtree('build')
@@ -65,6 +65,7 @@ def clean(cln):
     
   
 def test(tst):
+  copynode(tst)
   print os.system("node test/sanity.js")
  
 
