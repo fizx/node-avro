@@ -18,19 +18,16 @@ def configure(conf):
   conf.check_tool("compiler_cc")
   conf.check_tool("node_addon")
 
-  conf.env.append_value("LIBPATH_JANSSON", abspath("./deps/avro/jansson/"))
-  conf.env.append_value("CPPPATH_JANSSON", abspath("./deps/avro/jansson/src/"))
-
-  conf.env.append_value("LIBPATH_AVRO", abspath("./deps/build/lib/"))
+  conf.env.append_value("LIBPATH_AVRO", abspath("./build/default/lib/"))
   conf.env.append_value("STATICLIB_AVRO",["avro"])
-  conf.env.append_value("CPPPATH_AVRO", abspath("./deps/build/include/"))
+  conf.env.append_value("CPPPATH_AVRO", abspath("./build/default/include/"))
 
-  buildpath = abspath("deps/build")
-  if os.system("cd \"deps/avro\" && ./configure --prefix=" + buildpath + " && cd ..") != 0:
-      conf.fatal("Configuring %s failed." % (subdir))  
+  buildpath = abspath("build/default")
+  if os.system("cd \"deps/avro\" && ./configure --prefix=" + buildpath) != 0:
+      conf.fatal("Configuring avro failed.")  
 
-  if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + buildpath + " && cd ..") != 0:
-      conf.fatal("Configuring %s failed." % (subdir))  
+  if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + buildpath) != 0:
+      conf.fatal("Configuring jansson failed.")  
 
 def build(bld):
 
@@ -42,7 +39,7 @@ def build(bld):
   node_avro.source = bld.glob("binding.cc")
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
-  node_avro.includes = "."
+  node_avro.includes = [".", abspath("build/default/include/")]
   node_avro.uselib = "AVRO"
   bld.add_group()
 
@@ -56,7 +53,8 @@ def shutdown():
 
 def clean(cln):
   if exists('build'): rmtree('build')
-  if exists('deps/build'): rmtree('deps/build')
+  if exists('.lock-wscript'): unlink('.lock-wscript')
+  
   if exists('deps/avro/Makefile'):
     os.system("cd \"deps/avro\" && make distclean")
   if exists('lib/node-avro.node'):
