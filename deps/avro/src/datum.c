@@ -14,10 +14,11 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "avro.h"
 #include "datum.h"
 #include "encoding.h"
 
@@ -154,6 +155,8 @@ static int avro_bytes_set_private(avro_datum_t datum, const char *bytes,
 				  void (*bytes_free) (void *ptr))
 {
 	struct avro_bytes_datum_t *b;
+
+	AVRO_UNUSED(size);
 
 	if (!(is_avro_datum(datum) && is_avro_bytes(datum))) {
 		return EINVAL;
@@ -546,6 +549,8 @@ static int avro_fixed_set_private(avro_datum_t datum, const char *bytes,
 {
 	struct avro_fixed_datum_t *fixed;
 
+	AVRO_UNUSED(size);
+
 	if (!(is_avro_datum(datum) && is_avro_fixed(datum))) {
 		return EINVAL;
 	}
@@ -697,6 +702,8 @@ avro_array_append_datum(const avro_datum_t array_datum,
 
 static int char_datum_free_foreach(char *key, avro_datum_t datum, void *arg)
 {
+	AVRO_UNUSED(arg);
+
 	avro_datum_decref(datum);
 	free(key);
 	return ST_DELETE;
@@ -704,6 +711,9 @@ static int char_datum_free_foreach(char *key, avro_datum_t datum, void *arg)
 
 static int array_free_foreach(int i, avro_datum_t datum, void *arg)
 {
+	AVRO_UNUSED(i);
+	AVRO_UNUSED(arg);
+
 	avro_datum_decref(datum);
 	return ST_DELETE;
 }
@@ -845,5 +855,6 @@ void avro_datum_decref(avro_datum_t datum)
 
 void avro_datum_print(avro_datum_t value, FILE * fp)
 {
-
+	AVRO_UNUSED(value);
+	AVRO_UNUSED(fp);
 }

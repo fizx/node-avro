@@ -14,6 +14,8 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <limits.h>
 #include <errno.h>
 #include <string.h>
@@ -30,6 +32,8 @@ static int
 schema_map_validate_foreach(char *key, avro_datum_t datum,
 			    struct validate_st *vst)
 {
+	AVRO_UNUSED(key);
+
 	if (!avro_schema_datum_validate(vst->expected_schema, datum)) {
 		vst->rval = 0;
 		return ST_STOP;

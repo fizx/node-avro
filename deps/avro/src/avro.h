@@ -90,13 +90,8 @@ struct avro_obj_t {
 #define is_avro_complex_type(obj) (!(is_avro_primitive(obj))
 #define is_avro_link(obj)     (obj && avro_typeof(obj) == AVRO_LINK)
 
-#ifdef __cplusplus
-typedef void *avro_reader_t;
-typedef void *avro_writer_t;
-#else
-typedef struct avro_reader_t *avro_reader_t;
-typedef struct avro_writer_t *avro_writer_t;
-#endif
+typedef struct avro_reader_t_ *avro_reader_t;
+typedef struct avro_writer_t_ *avro_writer_t;
 
 /*
  * schema 
@@ -133,12 +128,7 @@ int avro_schema_union_append(const avro_schema_t
 
 avro_schema_t avro_schema_link(avro_schema_t schema);
 
-#ifdef __cplusplus
-typedef void *avro_schema_error_t;
-#else
-typedef struct avro_schema_error_t *avro_schema_error_t;
-#endif
-
+typedef struct avro_schema_error_t_ *avro_schema_error_t;
 int avro_schema_from_json(const char *jsontext,
 			  const int32_t len,
 			  avro_schema_t * schema, avro_schema_error_t * error);
@@ -267,15 +257,12 @@ int avro_read_data(avro_reader_t reader,
 int avro_skip_data(avro_reader_t reader, avro_schema_t writer_schema);
 int avro_write_data(avro_writer_t writer,
 		    avro_schema_t writer_schema, avro_datum_t datum);
+int64_t avro_size_data(avro_writer_t writer,
+		       avro_schema_t writer_schema, avro_datum_t datum);
 
 /* File object container */
-#ifdef __cplusplus
-typedef void *avro_file_reader_t;
-typedef void *avro_file_writer_t;
-#else
-typedef struct avro_file_reader_t *avro_file_reader_t;
-typedef struct avro_file_writer_t *avro_file_writer_t;
-#endif
+typedef struct avro_file_reader_t_ *avro_file_reader_t;
+typedef struct avro_file_writer_t_ *avro_file_writer_t;
 
 int avro_file_writer_create(const char *path, avro_schema_t schema,
 			    avro_file_writer_t * writer);

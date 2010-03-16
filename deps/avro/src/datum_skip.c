@@ -14,6 +14,8 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -122,6 +124,8 @@ static int skip_record(avro_reader_t reader, const avro_encoding_t * enc,
 {
 	int rval;
 	long i;
+
+	AVRO_UNUSED(enc);
 
 	for (i = 0; i < writers_schema->fields->num_entries; i++) {
 		union {

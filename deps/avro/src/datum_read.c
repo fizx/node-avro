@@ -14,13 +14,14 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include "encoding.h"
 #include "schema.h"
 #include "datum.h"
-#include "avro_private.h"
 
 int
 avro_schema_match(avro_schema_t writers_schema, avro_schema_t readers_schema)
@@ -100,6 +101,8 @@ read_enum(avro_reader_t reader, const avro_encoding_t * enc,
 {
 	int rval;
 	int64_t index;
+
+	AVRO_UNUSED(readers_schema);
 
 	check(rval, enc->read_long(reader, &index));
 	*datum = avro_enum(writers_schema->name, index);
@@ -226,6 +229,9 @@ read_union(avro_reader_t reader, const avro_encoding_t * enc,
 		st_data_t data;
 		avro_schema_t schema;
 	} val;
+
+	AVRO_UNUSED(readers_schema);
+
 	check(rval, enc->read_long(reader, &discriminant));
 	if (!st_lookup(writers_schema->branches, discriminant, &val.data)) {
 		return EILSEQ;
@@ -246,6 +252,8 @@ read_record(avro_reader_t reader, const avro_encoding_t * enc,
 	long i;
 	avro_datum_t record;
 	avro_datum_t field_datum;
+
+	AVRO_UNUSED(enc);
 
 	record = *datum =
 	    avro_record(writers_schema->name, writers_schema->space);
@@ -286,7 +294,6 @@ avro_read_data(avro_reader_t reader, avro_schema_t writers_schema,
 	       avro_schema_t readers_schema, avro_datum_t * datum)
 {
 	int rval = EINVAL;
-	long i;
 	const avro_encoding_t *enc = &avro_binary_encoding;
 
 	if (!reader || !is_avro_schema(writers_schema) || !datum) {

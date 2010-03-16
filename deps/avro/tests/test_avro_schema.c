@@ -14,12 +14,12 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
-
-#include "avro.h"
 
 int test_cases = 0;
 avro_writer_t avro_stderr;
@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
 {
 	char *srcdir = getenv("srcdir");
 	char path[1024];
+
+	AVRO_UNUSED(argc);
+	AVRO_UNUSED(argv);
 
 	if (!srcdir) {
 		srcdir = ".";

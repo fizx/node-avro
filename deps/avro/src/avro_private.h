@@ -17,9 +17,16 @@
 #ifndef AVRO_PRIVATE_H
 #define AVRO_PRIVATE_H
 
-#define sys_call(rval, call) do { rval = call; } while(rval < 0 && errno == EINTR)
+#include "avro.h"
+
+#ifdef HAVE_CONFIG_H
+/* This is only true for now in the autotools build */
+#include "config.h"
+#endif
 
 #define check(rval, call) { rval = call; if(rval) return rval; }
+
+#define AVRO_UNUSED(var) (void)var;
 
 #define container_of(ptr_, type_, member_)  \
     ((type_ *)((char *)ptr_ - (size_t)&((type_ *)0)->member_))

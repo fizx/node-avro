@@ -14,12 +14,12 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include <stdlib.h>
-#include <stdint.h>
 #include <limits.h>
 #include <time.h>
 #include <string.h>
-#include "avro.h"
 
 char buf[4096];
 avro_reader_t reader;
@@ -67,6 +67,15 @@ write_read_check(avro_schema_t writers_schema,
 				type, validate);
 			exit(EXIT_FAILURE);
 		}
+		int64_t size =
+		    avro_size_data(writer, validate ? writers_schema : NULL,
+				   datum);
+		if (size != avro_writer_tell(writer)) {
+			fprintf(stderr,
+				"Unable to calculate size %s validate=%d (%lld != %lld)\n",
+				type, validate, size, avro_writer_tell(writer));
+			exit(EXIT_FAILURE);
+		}
 		if (avro_read_data
 		    (reader, writers_schema, readers_schema, &datum_out)) {
 			fprintf(stderr, "Unable to read %s validate=%d\n", type,
@@ -89,7 +98,7 @@ write_read_check(avro_schema_t writers_schema,
 
 static int test_string(void)
 {
-	int i;
+	unsigned int i;
 	const char *strings[] = { "Four score and seven years ago",
 		"our father brought forth on this continent",
 		"a new nation", "conceived in Liberty",
@@ -312,7 +321,7 @@ static int test_fixed(void)
 
 int main(void)
 {
-	int i;
+	unsigned int i;
 	struct avro_tests {
 		char *name;
 		avro_test func;

@@ -6,11 +6,12 @@
 /*
  * static char sccsid[] = "@(#) st.c 5.1 89/12/14 Crucible"; 
  */
+
+#include "avro_private.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include "st.h"
 
 typedef struct st_table_entry st_table_entry;
@@ -109,7 +110,7 @@ static long primes[] = {
 static int new_size(size)
 int size;
 {
-	int i;
+	unsigned int i;
 
 #if 0
 	for (i = 3; i < 31; i++) {
@@ -450,6 +451,8 @@ st_data_t never;
 static int delete_never(key, value, never)
 st_data_t key, value, never;
 {
+	AVRO_UNUSED(key);
+
 	if (value == never)
 		return ST_DELETE;
 	return ST_CONTINUE;

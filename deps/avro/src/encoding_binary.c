@@ -14,11 +14,14 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License. 
  */
+
+#include "avro_private.h"
 #include "encoding.h"
 #include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define MAX_VARINT_BUF_SIZE 10
 
@@ -60,16 +63,30 @@ static int skip_long(avro_reader_t reader)
 
 static int write_long(avro_writer_t writer, int64_t l)
 {
-	uint8_t b;
+	char buf[MAX_VARINT_BUF_SIZE];
+	uint8_t bytes_written = 0;
 	uint64_t n = (l << 1) ^ (l >> 63);
 	while (n & ~0x7F) {
-		b = ((((uint8_t) n) & 0x7F) | 0x80);
-		AVRO_WRITE(writer, &b, 1);
+		buf[bytes_written++] = (char)((((uint8_t) n) & 0x7F) | 0x80);
 		n >>= 7;
 	}
-	b = (uint8_t) n;
-	AVRO_WRITE(writer, &b, 1);
+	buf[bytes_written++] = (char)n;
+	AVRO_WRITE(writer, buf, bytes_written);
 	return 0;
+}
+
+static int64_t size_long(avro_writer_t writer, int64_t l)
+{
+	AVRO_UNUSED(writer);
+
+	int64_t len = 0;
+	uint64_t n = (l << 1) ^ (l >> 63);
+	while (n & ~0x7F) {
+		len++;
+		n >>= 7;
+	}
+	len++;
+	return len;
 }
 
 static int read_int(avro_reader_t reader, int32_t * i)
@@ -95,6 +112,12 @@ static int write_int(avro_writer_t writer, const int32_t i)
 {
 	int64_t l = i;
 	return write_long(writer, l);
+}
+
+static int64_t size_int(avro_writer_t writer, const int32_t i)
+{
+	int64_t l = i;
+	return size_long(writer, l);
 }
 
 static int read_bytes(avro_reader_t reader, char **bytes, int64_t * len)
@@ -138,6 +161,14 @@ write_bytes(avro_writer_t writer, const char *bytes, const int64_t len)
 	return 0;
 }
 
+static int64_t
+size_bytes(avro_writer_t writer, const char *bytes, const int64_t len)
+{
+	AVRO_UNUSED(bytes);
+
+	return size_long(writer, len) + len;
+}
+
 static int read_string(avro_reader_t reader, char **s)
 {
 	int64_t len;
@@ -155,17 +186,23 @@ static int write_string(avro_writer_t writer, const char *s)
 	return write_bytes(writer, s, len);
 }
 
+static int64_t size_string(avro_writer_t writer, const char *s)
+{
+	int64_t len = strlen(s);
+	return size_bytes(writer, s, len);
+}
+
 static int read_float(avro_reader_t reader, float *f)
 {
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	uint8_t buf[4];
 #endif
 	union {
 		float f;
 		int32_t i;
 	} v;
-#if WORDS_BIGENDIAN
-	AVRO_READ(avro, buf, 4);
+#if BYTE_ORDER == BIG_ENDIAN
+	AVRO_READ(reader, buf, 4);
 	v.i = ((int32_t) buf[0] << 0)
 	    | ((int32_t) buf[1] << 8)
 	    | ((int32_t) buf[2] << 16) | ((int32_t) buf[3] << 24);
@@ -184,7 +221,7 @@ static int skip_float(avro_reader_t reader)
 
 static int write_float(avro_writer_t writer, const float f)
 {
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	uint8_t buf[4];
 #endif
 	union {
@@ -193,7 +230,7 @@ static int write_float(avro_writer_t writer, const float f)
 	} v;
 
 	v.f = f;
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	buf[0] = (uint8_t) (v.i >> 0);
 	buf[1] = (uint8_t) (v.i >> 8);
 	buf[2] = (uint8_t) (v.i >> 16);
@@ -205,9 +242,17 @@ static int write_float(avro_writer_t writer, const float f)
 	return 0;
 }
 
+static int64_t size_float(avro_writer_t writer, const float f)
+{
+	AVRO_UNUSED(writer);
+	AVRO_UNUSED(f);
+
+	return 4;
+}
+
 static int read_double(avro_reader_t reader, double *d)
 {
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	uint8_t buf[8];
 #endif
 	union {
@@ -215,8 +260,8 @@ static int read_double(avro_reader_t reader, double *d)
 		int64_t l;
 	} v;
 
-#if WORDS_BIGENDIAN
-	AVRO_READ(avro, buf, 8);
+#if BYTE_ORDER == BIG_ENDIAN
+	AVRO_READ(reader, buf, 8);
 	v.l = ((int64_t) buf[0] << 0)
 	    | ((int64_t) buf[1] << 8)
 	    | ((int64_t) buf[2] << 16)
@@ -239,7 +284,7 @@ static int skip_double(avro_reader_t reader)
 
 static int write_double(avro_writer_t writer, const double d)
 {
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	uint8_t buf[8];
 #endif
 	union {
@@ -248,7 +293,7 @@ static int write_double(avro_writer_t writer, const double d)
 	} v;
 
 	v.d = d;
-#if WORDS_BIGENDIAN
+#if BYTE_ORDER == BIG_ENDIAN
 	buf[0] = (uint8_t) (v.l >> 0);
 	buf[1] = (uint8_t) (v.l >> 8);
 	buf[2] = (uint8_t) (v.l >> 16);
@@ -262,6 +307,14 @@ static int write_double(avro_writer_t writer, const double d)
 	AVRO_WRITE(writer, (void *)&v.l, 8);
 #endif
 	return 0;
+}
+
+static int64_t size_double(avro_writer_t writer, const double d)
+{
+	AVRO_UNUSED(writer);
+	AVRO_UNUSED(d);
+
+	return 8;
 }
 
 static int read_boolean(avro_reader_t reader, int8_t * b)
@@ -282,11 +335,21 @@ static int write_boolean(avro_writer_t writer, const int8_t b)
 	return 0;
 }
 
+static int64_t size_boolean(avro_writer_t writer, const int8_t b)
+{
+	AVRO_UNUSED(writer);
+	AVRO_UNUSED(b);
+
+	return 1;
+}
+
 static int read_skip_null(avro_reader_t reader)
 {
 	/*
 	 * no-op 
 	 */
+	AVRO_UNUSED(reader);
+
 	return 0;
 }
 
@@ -295,6 +358,15 @@ static int write_null(avro_writer_t writer)
 	/*
 	 * no-op 
 	 */
+	AVRO_UNUSED(writer);
+
+	return 0;
+}
+
+static int64_t size_null(avro_writer_t writer)
+{
+	AVRO_UNUSED(writer);
+
 	return 0;
 }
 
@@ -306,46 +378,54 @@ const avro_encoding_t avro_binary_encoding = {
 	.read_string = read_string,
 	.skip_string = skip_string,
 	.write_string = write_string,
+	.size_string = size_string,
 	/*
 	 * bytes 
 	 */
 	.read_bytes = read_bytes,
 	.skip_bytes = skip_bytes,
 	.write_bytes = write_bytes,
+	.size_bytes = size_bytes,
 	/*
 	 * int 
 	 */
 	.read_int = read_int,
 	.skip_int = skip_int,
 	.write_int = write_int,
+	.size_int = size_int,
 	/*
 	 * long 
 	 */
 	.read_long = read_long,
 	.skip_long = skip_long,
 	.write_long = write_long,
+	.size_long = size_long,
 	/*
 	 * float 
 	 */
 	.read_float = read_float,
 	.skip_float = skip_float,
 	.write_float = write_float,
+	.size_float = size_float,
 	/*
 	 * double 
 	 */
 	.read_double = read_double,
 	.skip_double = skip_double,
 	.write_double = write_double,
+	.size_double = size_double,
 	/*
 	 * boolean 
 	 */
 	.read_boolean = read_boolean,
 	.skip_boolean = skip_boolean,
 	.write_boolean = write_boolean,
+	.size_boolean = size_boolean,
 	/*
 	 * null 
 	 */
 	.read_null = read_skip_null,
 	.skip_null = read_skip_null,
-	.write_null = write_null
+	.write_null = write_null,
+	.size_null = size_null
 };
