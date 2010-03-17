@@ -1,12 +1,22 @@
 node-avro
 ---------
 
-This was intended to be an addon for node, but there are a few problems with the
-current status of this project:
+This is an compiled (c/c++) addon for nodejs which integrates with avro-c and enables the encoding of javascript objects to a binary transport format.
 
-  - avro does not have a complete c++ implementation
-  - avro's c appears to be incompatible with g++, and would require a partial/full re-write to properly compile under g++
-  - documentation/community is lacking (from what I saw)
+see: [avro][avro]
 
-So I'm putting this on the burner furthest back on the stove, and moving on.  
-I think Google's Protocol Buffers is an excellent alternative.
+Status
+======
+
+ - Currently uses an export avro trunk (r924091)
+ - Module is being built and require'd via tests/sanity
+ 
+Building
+========
+**Note:** this currently requires autotools and libtool
+ 
+cd node-avro && node-waf configure build test
+
+
+  [avro]: http://hadoop.apache.org/avro/[avro]: http://apache.org
+

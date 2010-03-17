@@ -1,7 +1,7 @@
 import Options, glob
 from os.path import join, dirname, abspath, exists
 from shutil import copy, rmtree
-from os import unlink
+from os import unlink, mkdir
 import sys, os
 
 
@@ -33,7 +33,7 @@ def build(bld):
 
   # build avro
   os.system("cd \"deps/avro\" && make clean install")
-
+  bld.add_group();
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
   node_avro.source = bld.glob("binding.cc")
@@ -44,6 +44,8 @@ def build(bld):
   bld.add_group()
 
 def copynode(ctx):
+  if not exists('lib'):
+    mkdir('lib')
   if exists('build/default/node-avro.node') and not exists('lib/node-avro.node'):
     copy('build/default/node-avro.node', 'lib/node-avro.node')
 
@@ -54,12 +56,10 @@ def shutdown():
 def clean(cln):
   if exists('build'): rmtree('build')
   if exists('.lock-wscript'): unlink('.lock-wscript')
-  
+  if exists('deps/avro/m4/'): rmtree('deps/avro/m4/')
   if exists('deps/avro/Makefile'):
     os.system("cd \"deps/avro\" && make distclean")
-  if exists('lib/node-avro.node'):
-    for FILE in glob.glob("lib/*"):
-      unlink(FILE)
+  if exists('lib/node-avro.node'): unlink('lib/node-avro.node')
     
   
 def test(tst):
