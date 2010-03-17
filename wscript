@@ -23,7 +23,7 @@ def configure(conf):
   conf.env.append_value("CPPPATH_AVRO", abspath("./build/default/include/"))
 
   buildpath = abspath("build/default")
-  if os.system("cd \"deps/avro\" && ./configure --prefix=" + buildpath) != 0:
+  if os.system("cd \"deps/avro\" && autoreconf -f -i && ./configure --prefix=" + buildpath) != 0:
       conf.fatal("Configuring avro failed.")  
 
   if os.system("cd \"deps/avro/jansson\" && ./configure --prefix=" + buildpath) != 0:
