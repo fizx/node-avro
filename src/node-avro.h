@@ -1,6 +1,7 @@
 #ifndef NODE_AVRO_H_
 #define NODE_AVRO_H_
 
+#include <avro.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <v8.h>
@@ -19,10 +20,17 @@ class Avro : public ObjectWrap {
  protected:
   static v8::Persistent<v8::FunctionTemplate> constructor_template;
   static v8::Handle<v8::Value> New(const v8::Arguments &args);
+ 
+  // Exposed to js land
+  static v8::Handle<v8::Value> encode(const v8::Arguments &args);
+  static v8::Handle<v8::Value> decode(const v8::Arguments &args);
 
  private:
   Avro(const char *schema);
   ~Avro();
+  
+  avro_schema_t _schema;
+  
 };
 
 
