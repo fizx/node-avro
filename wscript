@@ -36,7 +36,7 @@ def build(bld):
   bld.add_group();
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
-  node_avro.source = bld.glob("binding.cc")
+  node_avro.source = bld.glob("src/*.cc")
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
   node_avro.includes = [".", abspath("build/default/include/")]
