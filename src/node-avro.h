@@ -11,14 +11,8 @@ namespace node {
 class Avro : public ObjectWrap {
  public:
   static void Initialize(v8::Handle<v8::Object> target);
-  static inline bool HasInstance(v8::Handle<v8::Value> val) {
-    if (!val->IsObject()) return false;
-    v8::Local<v8::Object> obj = val->ToObject();
-    return constructor_template->HasInstance(obj);
-  }
 
  protected:
-  static v8::Persistent<v8::FunctionTemplate> constructor_template;
   static v8::Handle<v8::Value> New(const v8::Arguments &args);
  
   // Exposed to js land
@@ -32,8 +26,5 @@ class Avro : public ObjectWrap {
   avro_schema_t _schema;
   
 };
-
-
 }  // namespace node avro
-
 #endif  // NODE_AVRO_H_
