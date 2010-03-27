@@ -18,12 +18,21 @@ void Avro::Initialize(v8::Handle<v8::Object> target)
   target->Set(String::NewSymbol("Avro"), t->GetFunction());
 }
 
-v8::Handle<v8::Value> Avro::encode(const v8::Arguments &args) {}
-v8::Handle<v8::Value> Avro::decode(const v8::Arguments &args) {}
+v8::Handle<v8::Value> Avro::encode(const v8::Arguments &args) 
+{
+  
+}
+
+v8::Handle<v8::Value> Avro::decode(const v8::Arguments &args) 
+{  
+  
+}
 
 v8::Handle<v8::Value> Avro::New(const v8::Arguments &args) {
   // convert first arg to const char *
+  
   // create new avro instance
+  
   // wrap avro instance
 
   return args.This();
