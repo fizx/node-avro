@@ -56,7 +56,6 @@ def copynode(ctx):
   if exists('build/default/node-avro.node') and not exists('lib/node-avro.node'):
     copy('build/default/node-avro.node', 'lib/node-avro.node')
 
-
 def shutdown():
   copynode(None)
 
@@ -67,10 +66,8 @@ def clean(cln):
   if exists('deps/avro/Makefile'):
     os.system("cd \"deps/avro\" && make distclean")
   if exists('lib/node-avro.node'): unlink('lib/node-avro.node')
-    
   
 def test(tst):
   copynode(tst)
   print os.system("node test/sanity.js")
  
-
