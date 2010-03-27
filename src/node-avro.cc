@@ -8,8 +8,6 @@ namespace node {
 
 using namespace v8;
 
-Persistent<FunctionTemplate> Avro::constructor_template;
-
 // Extracts a C string from a V8 Utf8Value.
 const char* ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
@@ -18,19 +16,16 @@ const char* ToCString(const v8::String::Utf8Value& value) {
 void Avro::Initialize(v8::Handle<v8::Object> target)
 {
   HandleScope scope;
-  Local<FunctionTemplate> _constructor = FunctionTemplate::New(New);
-  constructor_template = Persistent<FunctionTemplate>::New(_constructor);
+  Local<FunctionTemplate> t = FunctionTemplate::New(New);
   
-  constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
-  constructor_template->SetClassName(String::NewSymbol("Avro"));
+  t->InstanceTemplate()->SetInternalFieldCount(1);
+  t->SetClassName(String::NewSymbol("Avro"));
   
   // export methods that need to be exposed to javascript
-  Local<FunctionTemplate> _encode = FunctionTemplate::New(Encode);
-  constructor_template->PrototypeTemplate()->Set(String::NewSymbol("encode"), _encode);
-  //NODE_SET_PROTOTYPE_METHOD(t, "encode", Encode);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "decode", Decode);
+  NODE_SET_PROTOTYPE_METHOD(t, "encode", Encode);
+  NODE_SET_PROTOTYPE_METHOD(t, "decode", Decode);
   
-  target->Set(String::NewSymbol("Avro"), constructor_template->GetFunction());
+  target->Set(String::NewSymbol("Avro"), t->GetFunction());
 }
 
 v8::Handle<v8::Value> Avro::Encode(const v8::Arguments &args) 
