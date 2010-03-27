@@ -19,7 +19,7 @@ def configure(conf):
   conf.check_tool("node_addon")
 
   conf.env.append_value("LIBPATH_AVRO", abspath("./build/default/lib/"))
-  conf.env.append_value("LIB_AVRO",["avro"])
+  conf.env.append_value("STATICLIB_AVRO",["avro"])
   conf.env.append_value("CPPPATH_AVRO", abspath("./build/default/include/"))
 
   # configure avro on x86_64
@@ -28,7 +28,7 @@ def configure(conf):
     fpic="--with-pic"
   
   buildpath = abspath("build/default")
-  cmd = "cd \"deps/avro\" && autoreconf -f -i && ./configure %s --prefix=%s"
+  cmd = "cd \"deps/avro\" && autoreconf -f -i && ./configure %s --enable-static --prefix=%s"
   if os.system(cmd % (fpic,buildpath)) != 0:
     conf.fatal("Configuring avro failed.")  
 
