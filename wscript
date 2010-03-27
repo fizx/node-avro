@@ -21,6 +21,9 @@ def configure(conf):
   conf.env.append_value("LIBPATH_AVRO", abspath("./build/default/lib/"))
   conf.env.append_value("STATICLIB_AVRO",["avro"])
   conf.env.append_value("CPPPATH_AVRO", abspath("./build/default/include/"))
+  
+  conf.env.append_value("LIBPATH_JANSSON", abspath("./build/default/lib/"))
+  conf.env.append_value("STATICLIB_JANSSON",["jansson"])
 
   # configure avro on x86_64
   fpic = ""
@@ -28,18 +31,21 @@ def configure(conf):
     fpic="--with-pic"
   
   buildpath = abspath("build/default")
-  cmd = "cd \"deps/avro\" && autoreconf -f -i && ./configure %s --enable-static --prefix=%s"
+  cmd = "cd \"deps/avro\" && autoreconf -f -i && ./configure %s --prefix=%s"
   if os.system(cmd % (fpic,buildpath)) != 0:
     conf.fatal("Configuring avro failed.")  
 
-#  cmd = "cd \"deps/avro/jansson\" && ./configure %s --prefix=%s"
-#  if os.system(cmd % (fpic,buildpath)) != 0:
-#      conf.fatal("Configuring jansson failed.")  
+  cmd = "cd \"deps/avro/jansson\" && ./configure %s --enable-static --disable-shared --prefix=%s"
+  if os.system(cmd % (fpic,buildpath)) != 0:
+     conf.fatal("Configuring jansson failed.")
+  
 
 def build(bld):
 
   # build avro
-  os.system("cd \"deps/avro\" && make clean install")
+  os.system("cd \"deps/avro\" && make && make install")
+  copy('deps/avro/jansson/src/.libs/libjansson.a', 'build/default/lib/libjansson.a')
+  
   bld.add_group();
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
@@ -47,8 +53,8 @@ def build(bld):
   node_avro.name = "node-avro"
   node_avro.target = "node-avro"
   node_avro.includes = [".", abspath("build/default/include/")]
-  node_avro.uselib = "AVRO"
-  bld.add_group()
+  node_avro.uselib = ["AVRO", "JANSSON"]
+  bld.add_post_fun(copynode)
 
 def copynode(ctx):
   if not exists('lib'):
@@ -68,6 +74,5 @@ def clean(cln):
   if exists('lib/node-avro.node'): unlink('lib/node-avro.node')
   
 def test(tst):
-  copynode(tst)
-  print os.system("node test/sanity.js")
+  os.system("node test/sanity.js")
  
