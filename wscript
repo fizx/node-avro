@@ -50,8 +50,8 @@ def build(bld):
   # build node-avro
   node_avro = bld.new_task_gen("cxx", "shlib", "node_addon")
   node_avro.source = bld.glob("src/*.cc")
-  node_avro.name = "node-avro"
-  node_avro.target = "node-avro"
+  node_avro.name = "node-avro-addon"
+  node_avro.target = "node-avro-addon"
   node_avro.includes = [".", abspath("build/default/include/")]
   node_avro.uselib = ["AVRO", "JANSSON"]
   bld.add_post_fun(copynode)
@@ -59,8 +59,8 @@ def build(bld):
 def copynode(ctx):
   if not exists('lib'):
     mkdir('lib')
-  if exists('build/default/node-avro.node') and not exists('lib/node-avro.node'):
-    copy('build/default/node-avro.node', 'lib/node-avro.node')
+  if exists('build/default/node-avro-addon.node'):
+    copy('build/default/node-avro-addon.node', 'lib/node-avro-addon.node')
 
 def shutdown():
   copynode(None)
@@ -71,7 +71,7 @@ def clean(cln):
   if exists('deps/avro/m4/'): rmtree('deps/avro/m4/')
   if exists('deps/avro/Makefile'):
     os.system("cd \"deps/avro\" && make distclean")
-  if exists('lib/node-avro.node'): unlink('lib/node-avro.node')
+  if exists('lib/node-avro-addon.node'): unlink('lib/node-avro-addon.node')
   
 def test(tst):
   os.system("node test/sanity.js")
