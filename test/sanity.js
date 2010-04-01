@@ -48,7 +48,7 @@ sys.puts("Original object encoded");
 
 // decode the resulting binary
 var decoded = avro.decode(result);
-sys.puts("Encoded object was decoded");
+sys.puts("Encoded object was decoded as:" + JSON.stringify(decoded));
 
 // compare the two objects
 // TODO: better check
