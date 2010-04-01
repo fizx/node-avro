@@ -1,0 +1,4 @@
+*.node
+deps
+.lock-wscript
+build
